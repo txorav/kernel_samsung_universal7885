@@ -674,7 +674,8 @@ static uint32_t himax_mcu_check_CRC(uint8_t * start_addr, int reload_length)
 				(tmp_data[1] << 8) + tmp_data[0]);
 			break;
 		} else {
-			input_info(true, &private_ts->client->dev,
+			/* GrapheneOS: polled up to 100x per FW reload, was I-spam */
+			input_dbg(true, &private_ts->client->dev,
 					"%s %s:Waiting for HW ready!\n",
 					HIMAX_LOG_TAG, __func__);
 			msleep(1);

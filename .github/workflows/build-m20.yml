@@ -124,7 +124,9 @@ jobs:
           write_boot;
           ## end boot install
           EOS
-          (cd AnyKernel3 && zip -r9 ../dist/AnyKernel3-m20lte-grapheneos-fixes.zip . -x .git/\*)
+          (cd AnyKernel3 && zip -r9 ../dist/AnyKernel3-m20lte-grapheneos-fixes.zip . -x .git/\* .github/\*)
+          # keep outer artifact small: inner zip + Image + logs only
+          rm -rf dist/AnyKernel3 dist/AnyKernel3-template
           ls -lh dist/
           echo "FLASH THIS FILE IN TWRP: dist/AnyKernel3-m20lte-grapheneos-fixes.zip (not the outer artifact)"
 

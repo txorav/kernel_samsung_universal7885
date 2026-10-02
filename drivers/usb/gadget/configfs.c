@@ -418,7 +418,7 @@ static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 		kfree(name);
 #ifdef CONFIG_USB_CONFIGFS_UEVENT
 		if (gi->gsi_boot) {
-			printk("usb: %s: GSI_image : Clear cfg->func_list \n",__func__);
+			pr_debug("usb: %s: GSI_image : Clear cfg->func_list \n",__func__);
 			if ( cdev != NULL ) {
 				list_for_each_entry(c, &cdev->configs, list) {
 					cfg = container_of(c, struct config_usb_cfg, c);
@@ -442,7 +442,7 @@ static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 		gi->udc_name = name;
 #ifdef CONFIG_USB_CONFIGFS_UEVENT
 		if (gi->gsi_boot) {
-			printk("usb: %s : gi->gsi_boot = %d \n",__func__,gi->gsi_boot);
+			pr_debug("usb: %s : gi->gsi_boot = %d \n",__func__,gi->gsi_boot);
 			usb_gadget_connect(gi->cdev.gadget);
 		}
 #endif
@@ -1475,7 +1475,10 @@ static void purge_configs_funcs(struct gadget_info *gi)
 
 			list_move_tail(&f->list, &cfg->func_list);
 			if (f->unbind) {
-				dev_err(&gi->cdev.gadget->dev, "unbind function"
+				/* GrapheneOS fix round 2: unbind during USB
+				 * reconfig (mtp/adb switch) is normal, not an
+				 * error. Was 700+ E lines in kmsg. */
+				dev_dbg(&gi->cdev.gadget->dev, "unbind function"
 						" '%s'/%pK\n", f->name, f);
 				f->unbind(c, f);
 			}
@@ -1932,7 +1935,9 @@ static void make_usb_func_link(struct gadget_info *dev, char * buf)
 			cfg = container_of(c, struct config_usb_cfg, c);
 			list_for_each_entry_safe(f, tmp, &dev->linked_func, list) {
 				if (!strcmp(f->name, name)) {
-					pr_err("usb: %s: enable device[%s]\n", __func__, name);
+					/* GrapheneOS fix round 2: normal USB switch
+					 * (was 300+ E lines per boot). */
+					pr_debug("usb: %s: enable device[%s]\n", __func__, name);
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 					if (!strcmp(f->name, "acm")) {
 						printk(KERN_DEBUG "usb: acm is enabled. (bcdDevice=0x400)\n");

@@ -1409,7 +1409,8 @@ static irqreturn_t s2mu004_chg_isr(int irq, void *data)
 	u8 val;
 
 	s2mu004_read_reg(charger->i2c, S2MU004_CHG_STATUS0, &val);
-	pr_info("[IRQ] %s, STATUS0 : 0x%02x\n", __func__, val);
+	/* GrapheneOS: per-IRQ, was I-storm */
+	pr_debug("[IRQ] %s, STATUS0 : 0x%02x\n", __func__, val);
 #if EN_OVP_IRQ
 	if ((val & CHGIN_STATUS_MASK) == (2 << CHGIN_STATUS_SHIFT))	{
 		charger->ovp = true;
@@ -1420,10 +1421,10 @@ static irqreturn_t s2mu004_chg_isr(int irq, void *data)
 			POWER_SUPPLY_PROP_HEALTH, value);
 	} else if ((val & CHGIN_STATUS_MASK) == (3 << CHGIN_STATUS_SHIFT) ||
 			(val & CHGIN_STATUS_MASK) == (5 << CHGIN_STATUS_SHIFT)) {
-		pr_info("%s: Vbus status 0x%x\n", __func__, val);
+		pr_debug("%s: Vbus status 0x%x\n", __func__, val);
 		charger->unhealth_cnt = HEALTH_DEBOUNCE_CNT;
 		if (charger->ovp == true)
-			pr_info("%s: recover from OVP\n", __func__);
+			pr_debug("%s: recover from OVP\n", __func__);
 		charger->ovp = false;
 		value.intval = POWER_SUPPLY_HEALTH_GOOD;
 		s2mu004_update_reg(charger->i2c, 0xBE, 0x00, 0x10);
