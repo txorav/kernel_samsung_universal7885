@@ -85,7 +85,10 @@ void acct_update_power(struct task_struct *task, cputime_t cputime) {
 
 	policy = cpufreq_cpu_get(cpu_num);
 
-	if (WARN_ON_ONCE(!policy))
+	/* GrapheneOS: scheduler ticks before cpufreq policy exists on a
+	 * CPU during early boot (swapper). Not a bug - just return.
+	 * Was WARN_ON_ONCE splat via acct_update_power <- account_system_time. */
+	if (!policy)
 		return;
 
 	powerstats = per_cpu(cpufreq_power_stats, cpu_num);
