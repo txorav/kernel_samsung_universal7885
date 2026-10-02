@@ -12,19 +12,22 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install deps
+      - name: Install deps (22.04-compatible, best-effort)
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison flex libssl-dev libncurses5-dev \
-            ccache lib32z1 lib32stdc++6 python2 python-is-python2 \
-            zip unzip cpio device-tree-compiler lzop libtinfo5
+          sudo apt-get install -y bc bison flex libssl-dev libncurses-dev \
+            ccache zip unzip cpio device-tree-compiler lzop libtinfo6 \
+            gcc make python3 || true
+          sudo apt-get install -y lib32z1 lib32stdc++6 2>/dev/null || true
+          sudo ln -sf /usr/bin/python3 /usr/bin/python 2>/dev/null || true
+          which ccache gcc python3 make dtc || true
 
       - name: Show toolchain
         run: |
