@@ -2068,14 +2068,28 @@ static int dwc3_gadget_start(struct usb_gadget *g,
 #endif
 
 #ifdef CONFIG_ARGOS
-	if (!zalloc_cpumask_var(&affinity_cpu_mask, GFP_KERNEL))
-		return -ENOMEM;
-	if (!zalloc_cpumask_var(&default_cpu_mask, GFP_KERNEL))
-		return -ENOMEM;
+	/* GrapheneOS fix: dwc3_gadget_start runs on every USB reconfig
+	 * (adb/mtp switch, seen 20+ times in kmsg). Previously it
+	 * zalloc'd global cpumasks each time without free and appended
+	 * duplicate argos entries, leaking memory and spamming
+	 * "argos_irq_affinity_setup dev_num:-1" (no "USB" DT entry on
+	 * m20lte, so IRQs stay pinned to CPU0 per /proc/interrupts).
+	 * Allocate once and tolerate missing argos entry. */
+	if (!affinity_cpu_mask) {
+		if (!zalloc_cpumask_var(&affinity_cpu_mask, GFP_KERNEL))
+			return -ENOMEM;
+	}
+	if (!default_cpu_mask) {
+		if (!zalloc_cpumask_var(&default_cpu_mask, GFP_KERNEL))
+			return -ENOMEM;
+	}
 
 	cpumask_copy(default_cpu_mask, get_default_cpu_mask());
-	cpumask_or(affinity_cpu_mask, affinity_cpu_mask, cpumask_of(3));
-	argos_irq_affinity_setup_label(irq, "USB", affinity_cpu_mask, default_cpu_mask);
+	cpumask_clear(affinity_cpu_mask);
+	cpumask_set_cpu(3, affinity_cpu_mask);
+	if (argos_irq_affinity_setup_label(irq, "USB", affinity_cpu_mask, default_cpu_mask))
+		pr_debug("dwc3: no argos USB entry, leaving IRQ %d on default affinity\n",
+			 irq);
 #endif
 
 	return 0;

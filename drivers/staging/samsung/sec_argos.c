@@ -198,7 +198,9 @@ static int argos_task_affinity_setup(struct task_struct *p, int dev_num,
 	}
 
 	if (dev_num < 0 || dev_num >= argos_pdata->ndevice) {
-		pr_err("%s dev_num:%d should be dev_num:0 ~ %d in boundary\n",
+		/* GrapheneOS fix: not every client has an argos DT entry
+		 * (e.g. dwc3 USB on m20lte). Expected, not an error. */
+		pr_debug("%s dev_num:%d should be dev_num:0 ~ %d in boundary\n",
 			__func__, dev_num, argos_pdata->ndevice - 1);
 		return -EINVAL;
 	}
@@ -245,7 +247,9 @@ static int argos_irq_affinity_setup(unsigned int irq, int dev_num,
 	}
 
 	if (dev_num < 0 || dev_num >= argos_pdata->ndevice) {
-		pr_err("%s dev_num:%d should be dev_num:0 ~ %d in boundary\n",
+		/* GrapheneOS fix: not every client has an argos DT entry
+		 * (e.g. dwc3 USB on m20lte). Expected, not an error. */
+		pr_debug("%s dev_num:%d should be dev_num:0 ~ %d in boundary\n",
 			__func__, dev_num, argos_pdata->ndevice - 1);
 		return -EINVAL;
 	}

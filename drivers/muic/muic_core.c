@@ -931,12 +931,13 @@ int muic_core_handle_attach(struct muic_platform_data *muic_pdata,
 	if (muic_pdata->attached_dev != ATTACHED_DEV_NONE_MUIC) {
 		ret = muic_core_handle_attached_prev_dev(muic_pdata, new_dev, &noti);
 		if (ret)
-			pr_err("%s prev_dev failed\n", __func__);
+			pr_debug("%s prev_dev failed\n", __func__);
 	}
 
 	ret = muic_core_handle_attached_new_dev(muic_pdata, new_dev, &noti);
 	if (ret)
-		pr_err("%s new_dev failed\n", __func__);
+		/* GrapheneOS fix: transient during USB reconfig (adb/mtp switch). */
+		pr_debug("%s new_dev failed\n", __func__);
 
 	if (noti) {
 		if (!muic_pdata->suspended)

@@ -593,16 +593,19 @@ void dwc3_link_status_check(struct dwc3 *dwc)
 {
 	u32 reg;
 
+	/* GrapheneOS fix: demote per-connect register dump from dev_info
+	 * to dev_dbg. It fired on every gadget pullup (adb/USB reconfig)
+	 * and spammed logd. */
 	reg = dwc3_readl(dwc->regs, DWC3_GUID);
-	dev_info(dwc->dev, "%s: GUID 0x%08x\n", __func__, reg);
+	dev_dbg(dwc->dev, "%s: GUID 0x%08x\n", __func__, reg);
 	reg = dwc3_readl(dwc->regs, DWC3_GSTS);
-	dev_info(dwc->dev, "%s: GSTS 0x%08x\n", __func__, reg);
+	dev_dbg(dwc->dev, "%s: GSTS 0x%08x\n", __func__, reg);
 	reg = dwc3_readl(dwc->regs, DWC3_DCTL);
-	dev_info(dwc->dev, "%s: DCTL 0x%08x\n", __func__, reg);
+	dev_dbg(dwc->dev, "%s: DCTL 0x%08x\n", __func__, reg);
 	reg = dwc3_readl(dwc->regs, DWC3_GCTL);
-	dev_info(dwc->dev, "%s: GCTL 0x%08x\n", __func__, reg);
+	dev_dbg(dwc->dev, "%s: GCTL 0x%08x\n", __func__, reg);
 	reg = dwc3_readl(dwc->regs, DWC3_DSTS);
-	dev_info(dwc->dev, "%s: DSTS 0x%08x\n", __func__, reg);
+	dev_dbg(dwc->dev, "%s: DSTS 0x%08x\n", __func__, reg);
 }
 
 static void dwc3_core_num_eps(struct dwc3 *dwc)

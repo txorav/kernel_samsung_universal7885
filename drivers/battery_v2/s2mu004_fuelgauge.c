@@ -730,7 +730,8 @@ static int s2mu004_get_rawsoc(struct s2mu004_fuelgauge_data *fuelgauge)
 	s2mu004_read_reg_byte(fuelgauge->i2c, 0x4F, &reg_OTP_4F);
 	s2mu004_read_reg_byte(fuelgauge->i2c, 0x4E, &reg_OTP_4E);
 
-	dev_err(&fuelgauge->i2c->dev, "%s: OTP 4E(%02x) 4F(%02x) current 4E(%02x) 4F(%02x)\n",
+	/* GrapheneOS fix: polled on every SOC read; was dev_err spamming kmsg 100+ times. */
+	dev_dbg(&fuelgauge->i2c->dev, "%s: OTP 4E(%02x) 4F(%02x) current 4E(%02x) 4F(%02x)\n",
 			__func__, fuelgauge->reg_OTP_4E, fuelgauge->reg_OTP_4F, reg_OTP_4E, reg_OTP_4F);
 
 #if defined(CONFIG_BATTERY_AGE_FORECAST)
@@ -760,7 +761,7 @@ static int s2mu004_get_rawsoc(struct s2mu004_fuelgauge_data *fuelgauge)
 			s2mu004_read_reg_byte(fuelgauge->i2c, 0x4F, &reg_OTP_4F);
 			s2mu004_read_reg_byte(fuelgauge->i2c, 0x4E, &reg_OTP_4E);
 
-			dev_err(&fuelgauge->i2c->dev, "1st reset after %s: OTP 4E(%02x) 4F(%02x) current 4E(%02x) 4F(%02x)\n",
+			dev_dbg(&fuelgauge->i2c->dev, "1st reset after %s: OTP 4E(%02x) 4F(%02x) current 4E(%02x) 4F(%02x)\n",
 				__func__, fuelgauge->reg_OTP_4E, fuelgauge->reg_OTP_4F, reg_OTP_4E, reg_OTP_4F);
 
 			if (fuelgauge->reg_OTP_4E != reg_OTP_4E || fuelgauge->reg_OTP_4F != reg_OTP_4F) {
@@ -769,7 +770,7 @@ static int s2mu004_get_rawsoc(struct s2mu004_fuelgauge_data *fuelgauge)
 				s2mu004_write_reg_byte(fuelgauge->i2c, 0x1F, 0x40);
 				msleep(50);
 				s2mu004_write_reg_byte(fuelgauge->i2c, 0x1F, 0x01);
-				dev_err(&fuelgauge->i2c->dev, "%s : 2st reset\n", __func__);
+				dev_dbg(&fuelgauge->i2c->dev, "%s : 2st reset\n", __func__);
 			}
 		}
 
@@ -1027,7 +1028,8 @@ static int s2mu004_get_ocv(struct s2mu004_fuelgauge_data *fuelgauge)
 	ocv_arr = fuelgauge->info.ocv_arr_val;
 #endif
 
-	dev_err(&fuelgauge->i2c->dev,
+	/* GrapheneOS fix: called on every OCV read; demote from err to debug. */
+	dev_dbg(&fuelgauge->i2c->dev,
 		"%s: soc (%d) soc_arr[TABLE_SIZE-1] (%d) ocv_arr[TABLE_SIZE-1) (%d)\n",
 		__func__, soc, soc_arr[TABLE_SIZE-1], ocv_arr[TABLE_SIZE-1]);
 	if (soc <= soc_arr[TABLE_SIZE - 1]) {

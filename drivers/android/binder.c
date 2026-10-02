@@ -1435,7 +1435,9 @@ static int binder_inc_node_nilocked(struct binder_node *node, int strong,
 			node->local_weak_refs++;
 		if (!node->has_weak_ref && list_empty(&node->work.entry)) {
 			if (target_list == NULL) {
-				pr_err("invalid inc weak node for %d\n",
+				/* GrapheneOS fix: GSI/userspace race triggers this
+				 * during service restart; do not spam kmsg. */
+				pr_debug("invalid inc weak node for %d\n",
 					node->debug_id);
 				return -EINVAL;
 			}

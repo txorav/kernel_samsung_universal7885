@@ -986,7 +986,8 @@ static int s2mu004_set_vconn_source(void *_data, int val)
 	u8 reg_data = 0, reg_val = 0, cc1_val = 0, cc2_val = 0;
 
 	if (!pdic_data->vconn_en) {
-		pr_err("%s, not support vconn source\n", __func__);
+		/* GrapheneOS fix: M20 HW has no VCONN source; expected path. */
+		pr_debug("%s, not support vconn source\n", __func__);
 		return -1;
 	}
 
@@ -2017,7 +2018,7 @@ static void s2mu004_vbus_short_check(struct s2mu004_usbpd_data *pdic_data)
 	cc1_val = val & S2MU004_REG_CTRL_MON_CC1_MASK;
 	cc2_val = (val & S2MU004_REG_CTRL_MON_CC2_MASK) >> S2MU004_REG_CTRL_MON_CC2_SHIFT;
 
-	dev_info(dev, "%s, 10k check : cc1_val(%x), cc2_val(%x)\n",
+	dev_dbg(dev, "%s, 10k check : cc1_val(%x), cc2_val(%x)\n",
 					__func__, cc1_val, cc2_val);
 
 	if (cc1_val == USBPD_Ra && cc2_val == USBPD_Ra)
@@ -2030,7 +2031,7 @@ static void s2mu004_vbus_short_check(struct s2mu004_usbpd_data *pdic_data)
 		cc1_val = val & S2MU004_REG_CTRL_MON_CC1_MASK;
 		cc2_val = (val & S2MU004_REG_CTRL_MON_CC2_MASK) >> S2MU004_REG_CTRL_MON_CC2_SHIFT;
 
-		dev_info(dev, "%s, 56k check : cc1_val(%x), cc2_val(%x)\n",
+		dev_dbg(dev, "%s, 56k check : cc1_val(%x), cc2_val(%x)\n",
 						__func__, cc1_val, cc2_val);
 
 		if (cc1_val == USBPD_Rd || cc2_val == USBPD_Rd)
@@ -2066,7 +2067,7 @@ static void s2mu004_vbus_short_check(struct s2mu004_usbpd_data *pdic_data)
 		cc1_val = val & S2MU004_REG_CTRL_MON_CC1_MASK;
 		cc2_val = (val & S2MU004_REG_CTRL_MON_CC2_MASK) >> S2MU004_REG_CTRL_MON_CC2_SHIFT;
 
-		dev_info(dev, "%s, vbus short check(%d) : cc1_val(%x), cc2_val(%x)\n",
+		dev_dbg(dev, "%s, vbus short check(%d) : cc1_val(%x), cc2_val(%x)\n",
 						__func__, retry, cc1_val, cc2_val);
 
 		if (cc1_val == USBPD_Ra || cc2_val == USBPD_Ra) {
@@ -2106,7 +2107,8 @@ static void s2mu004_vbus_short_check(struct s2mu004_usbpd_data *pdic_data)
 
 	s2mu004_usbpd_read_reg(i2c, S2MU004_REG_PLUG_MON2, &val);
 	if ((val & S2MU004_PR_MASK) == S2MU004_PDIC_SINK) {
-		dev_err(dev, "%s, cc short check success (%x)\n", __func__, val);
+		/* GrapheneOS fix: success is not an error. */
+		dev_dbg(dev, "%s, cc short check success (%x)\n", __func__, val);
 		pdic_data->vbus_short_check = true;
 	} else  {
 		pdic_data->status_reg |= PLUG_ATTACH;
@@ -2162,7 +2164,7 @@ static void s2mu004_power_off_water_check(struct s2mu004_usbpd_data *pdic_data)
 		cc1_val = val & S2MU004_REG_CTRL_MON_CC1_MASK;
 		cc2_val = (val & S2MU004_REG_CTRL_MON_CC2_MASK) >> S2MU004_REG_CTRL_MON_CC2_SHIFT;
 
-		dev_info(dev, "%s, vbus short check(%d) : cc1_val(%x), cc2_val(%x)\n",
+		dev_dbg(dev, "%s, vbus short check(%d) : cc1_val(%x), cc2_val(%x)\n",
 						__func__, retry, cc1_val, cc2_val);
 
 		if (cc1_val == USBPD_Ra || cc2_val == USBPD_Ra)
@@ -2466,7 +2468,9 @@ static int s2mu004_check_port_detect(struct s2mu004_usbpd_data *pdic_data)
 		msleep(100); /* dont over 310~620ms(tTypeCSinkWaitCap) */
 		s2mu004_assert_drp(pd_data);
 	} else {
-		dev_err(dev, "%s, PLUG Error\n", __func__);
+		/* GrapheneOS fix: transient when port is neither SRC nor SNK
+		 * during USB reconfig; do not spam kmsg. */
+		dev_dbg(dev, "%s, PLUG Error\n", __func__);
 		return -1;
 	}
 

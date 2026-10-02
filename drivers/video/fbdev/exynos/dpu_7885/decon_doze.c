@@ -9,6 +9,7 @@
  * published by the Free Software Foundation.
  */
 
+/* GrapheneOS fix: decon pm_stay_awake/pm_relax are normal blank/unblank operations, not warnings. Demote to dev_dbg to avoid kmsg spam. */
 #include <linux/pm_runtime.h>
 #include <soc/samsung/exynos-pd.h>
 
@@ -86,7 +87,7 @@ static int decon_set_doze(struct decon_device *decon)
 	}
 
 	pm_stay_awake(decon->dev);
-	dev_warn(decon->dev, "pm_stay_awake");
+	dev_dbg(decon->dev, "pm_stay_awake");
 	ret = v4l2_subdev_call(decon->out_sd[0], core, ioctl, DSIM_IOC_DOZE, NULL);
 	if (ret)
 		decon_err("%s: failed to ioctl: %s\n", __func__, decon->out_sd[0]->name);
@@ -189,7 +190,7 @@ static int decon_set_doze_suspend(struct decon_device *decon)
 
 	if (decon->dt.out_type == DECON_OUT_DSI) {
 		pm_relax(decon->dev);
-		dev_warn(decon->dev, "pm_relax");
+		dev_dbg(decon->dev, "pm_relax");
 	}
 
 	if (decon->dt.psr_mode != DECON_VIDEO_MODE) {

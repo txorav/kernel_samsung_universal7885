@@ -9,6 +9,7 @@
  * published by the Free Software Foundation.
 */
 
+/* GrapheneOS fix: decon pm_stay_awake/pm_relax are normal blank/unblank operations, not warnings. Demote to dev_dbg to avoid kmsg spam. */
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -1027,7 +1028,7 @@ int decon_enable(struct decon_device *decon)
 		}
 
 		pm_stay_awake(decon->dev);
-		dev_warn(decon->dev, "pm_stay_awake");
+		dev_dbg(decon->dev, "pm_stay_awake");
 
 		if (decon->pdata->out_type == DECON_OUT_DSI) {
 			ret = v4l2_subdev_call(decon->output_sd, video, s_stream, 1);
@@ -1227,7 +1228,7 @@ int decon_disable(struct decon_device *decon)
 		}
 
 		pm_relax(decon->dev);
-		dev_warn(decon->dev, "pm_relax");
+		dev_dbg(decon->dev, "pm_relax");
 
 		if (decon->pdata->psr_mode != DECON_VIDEO_MODE) {
 			if (decon->pinctrl && decon->decon_te_off) {
@@ -3978,7 +3979,7 @@ decon_init_done:
 			goto fail_update_thread;
 		}
 		pm_stay_awake(decon->dev);
-		dev_warn(decon->dev, "pm_stay_awake");
+		dev_dbg(decon->dev, "pm_stay_awake");
 		cam_stat = of_get_child_by_name(decon->dev->of_node, "cam-stat");
 		if (!cam_stat) {
 			decon_info("No DT node for cam-stat\n");

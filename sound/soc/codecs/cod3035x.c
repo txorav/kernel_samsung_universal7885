@@ -47,22 +47,11 @@
 #define ACPM_ADDR_CODECA 0x07
 
 #ifdef CONFIG_SND_SOC_SAMSUNG_VERBOSE_DEBUG
-#ifdef dev_dbg
-#undef dev_dbg
-#endif
-#ifdef dev_info
-#undef dev_info
-#endif
-#if 1 /* if: print option */
-#define dev_dbg dev_err
-#define dev_info dev_err
-#else /* else: print option */
-static void no_dev_dbg(void *v, char *s, ...)
-{
-}
-#define dev_dbg no_dev_dbg
-#define dev_info no_dev_dbg
-#endif /* endif: print option */
+/* GrapheneOS fix: do not remap dev_dbg/dev_info to dev_err.
+ * The previous mapping spammed the kernel log on every ALSA
+ * open/close (cod3035x_enable/disable, dai_startup/shutdown),
+ * overloading logd (logd "Skipping entries from slow reader")
+ * and keeping system_server CPU high. Keep normal dev_dbg semantics. */
 #endif
 
 #define COD3035X_WATER_DET_THRESHOLD_MAX 3280

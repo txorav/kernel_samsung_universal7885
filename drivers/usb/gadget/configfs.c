@@ -691,8 +691,13 @@ static int config_usb_cfg_unlink(
 		}
 	}
 	mutex_unlock(&gi->lock);
-	WARN(1, "Unable to locate function to unbind\n");
-	return 0;
+	/* GrapheneOS fix: unlink of a non-linked function (e.g. init
+	 * trying "rm /config/usb_gadget/g1/configs/b.1/f1" when only
+	 * mtp/adb are linked) is a normal userspace race, not a kernel
+	 * bug. Do not WARN() and dump a stack trace; just report -ENOENT
+	 * so userspace sees unlink() fail without polluting kmsg/logd. */
+	pr_debug("Unable to locate function to unbind\n");
+	return -ENOENT;
 }
 
 static struct configfs_item_operations gadget_config_item_ops = {
