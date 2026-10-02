@@ -71,30 +71,62 @@ jobs:
           find . -name "*.ko" -exec cp {} dist/modules/ \; || true
           cp out/build.log dist/ || true
           cp .config dist/defconfig_used || true
-          # AnyKernel3 zip (TWRP flashable)
+          # AnyKernel3 zip (TWRP flashable) - inner zip is the flashable file,
+          # outer artifact is just CI packaging (do NOT flash outer).
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git dist/AnyKernel3-template || true
           rm -rf AnyKernel3
           cp -r dist/AnyKernel3-template AnyKernel3
-          rm -rf AnyKernel3/.git
+          rm -rf AnyKernel3/.git AnyKernel3/.github
           cp dist/Image-m20lte-grapheneos-fixes AnyKernel3/zImage 2>/dev/null || cp dist/Image AnyKernel3/zImage || true
-          # minimal anykernel.sh tweak for exynos7885/m20lte
+          # m20lte anykernel.sh: kernel-only, keep stock ramdisk, BLOCK=auto
+          # (do NOT strip required properties/BLOCK vars - TWRP aborts without them)
           cat > AnyKernel3/anykernel.sh << 'EOS'
           # AnyKernel3 Ramdisk Mod Script
+          # GrapheneOS m20lte fixes by txorav
+
+          ### AnyKernel setup
+          # global properties
           properties() { '
           kernel.string=GrapheneOS m20lte fixes by txorav
           do.devicecheck=1
           do.modules=0
           do.systemless=1
+          do.cleanup=1
+          do.cleanuponabort=0
+          device.name1=m20lte
+          device.name2=m20ltedd
+          device.name3=m20
+          device.name4=universal7885
+          device.name5=
           supported.versions=
-          supported.devices=m20lte,m20ltedd,universal7885
-          '; }
+          supported.patchlevels=
+          supported.vendorpatchlevels=
+          '; } # end properties
+
+          ### AnyKernel install
+          boot_attributes() {
+          set_perm_recursive 0 0 755 644 $RAMDISK/*;
+          set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
+          } # end attributes
+
+          # boot shell variables
+          BLOCK=auto;
+          IS_SLOT_DEVICE=0;
+          RAMDISK_COMPRESSION=auto;
+          PATCH_VBMETA_FLAG=auto;
+
+          # import functions/variables and setup patching - see for reference (DO NOT REMOVE)
           . tools/ak3-core.sh;
+
+          # boot install - kernel only, keep stock ramdisk
           dump_boot;
+
           write_boot;
-          ## end install
+          ## end boot install
           EOS
           (cd AnyKernel3 && zip -r9 ../dist/AnyKernel3-m20lte-grapheneos-fixes.zip . -x .git/\*)
           ls -lh dist/
+          echo "FLASH THIS FILE IN TWRP: dist/AnyKernel3-m20lte-grapheneos-fixes.zip (not the outer artifact)"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
